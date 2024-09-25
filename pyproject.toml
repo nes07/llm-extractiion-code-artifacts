@@ -1,0 +1,18 @@
+[project]
+name = "llm-extract-structured-information"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "Nemanja Ninkovic" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "openai",
+    "python-dotenv",
+]
+
+# see https://github.com/astral-sh/uv/issues/6443
+[tool.setuptools.packages.find]
+where = []

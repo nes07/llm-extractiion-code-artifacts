@@ -1,0 +1,4 @@
+{
+  "name": "llm-extract-structured-information",
+  "dockerFile": "Dockerfile"
+}
