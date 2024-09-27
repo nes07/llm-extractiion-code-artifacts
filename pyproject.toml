@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "openai",
     "python-dotenv",
+    "pdfplumber"
 ]
 
 # see https://github.com/astral-sh/uv/issues/6443
