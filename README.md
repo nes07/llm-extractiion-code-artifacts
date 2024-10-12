@@ -1,5 +1,6 @@
 ## Extracting structured information from documents with LLM
 
+This repository contains code for [the blog post on extracting structured information from LLMs](https://ninkovic.dev/blog/2024/extract-structured-information-with-llm).
 
 ### OpenAI API key
 
@@ -37,4 +38,4 @@ Follow these steps:
 
 ### Running the project
 
-Run `python3 extract.py`
+Run `uv run extract.py`
