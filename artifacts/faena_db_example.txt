@@ -1,0 +1,117 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/table';
+
+const fetchData = async (url, method = 'GET', body = null) => {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body) options.body = JSON.stringify(body);
+
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch from ${url}`);
+  }
+  return response.json();
+};
+
+const fetchDatabaseTables = async () => {
+  return fetchData('https://api.example.com/db/tables');
+};
+
+const fetchTableRecords = async (tableName) => {
+  return fetchData(`https://api.example.com/db/tables/${tableName}/records`);
+};
+
+const fetchEmployeeRecords = async () => {
+  return fetchData('https://api.example.com/db/query', 'POST', { query: 'SELECT * FROM employees WHERE department = "logistics"' });
+};
+
+const fetchProductSales = async () => {
+  return fetchData('https://api.example.com/db/query', 'POST', { query: 'SELECT product_name, SUM(quantity) FROM sales GROUP BY product_name' });
+};
+
+const DatabaseDashboard = () => {
+  const [tables, setTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadTables = async () => {
+      try {
+        const tableList = await fetchDatabaseTables();
+        setTables(tableList);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+    loadTables();
+  }, []);
+
+  const handleTableSelect = async (tableName) => {
+    setLoading(true);
+    setSelectedTable(tableName);
+    try {
+      const tableData = await fetchTableRecords(tableName);
+      setRecords(tableData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-4">
+      <h1 className="text-xl font-bold mb-4">Database Management Dashboard</h1>
+      <div className="flex gap-4">
+        <div className="w-1/3">
+          <h2 className="text-lg font-semibold">Tables</h2>
+          <ul>
+            {tables.map((table) => (
+              <li key={table} className="cursor-pointer text-blue-600 hover:underline" onClick={() => handleTableSelect(table)}>
+                {table}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-2/3">
+          {selectedTable && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{selectedTable} Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : (
+                  <Table>
+                    <Thead>
+                      <Tr>
+                        {records.length > 0 && Object.keys(records[0]).map((key) => <Th key={key}>{key}</Th>)}
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {records.map((record, index) => (
+                        <Tr key={index}>
+                          {Object.values(record).map((value, idx) => <Td key={idx}>{value}</Td>)}
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+      {error && <p className="text-red-500">Error: {error}</p>}
+    </div>
+  );
+};
+
+export default DatabaseDashboard;

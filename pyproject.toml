@@ -13,6 +13,7 @@ dependencies = [
     "pdfplumber",
     "pydantic",
     "python-dotenv",
+    "neo4j"
 ]
 
 # see https://github.com/astral-sh/uv/issues/6443

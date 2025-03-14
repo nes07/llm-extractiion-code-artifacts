@@ -1,41 +1,78 @@
-## Extracting structured information from documents with LLM
+# Artifact Knowledge Extraction
 
-This repository contains code for [the blog post on extracting structured information from LLMs](https://ninkovic.dev/blog/2024/extract-structured-information-with-llm).
+## Overview
+This project extracts knowledge from code artifacts by identifying APIs, endpoints, queries, databases, tables, and relationships. It structures this extracted knowledge into a Neo4j graph for better visualization and analysis.
 
-### OpenAI API key
+## Features
+- **API & Endpoint Detection**: Identifies RESTful API calls and their associated endpoints.
+- **Query Extraction**: Extracts SQL/NoSQL queries and links them to the relevant databases.
+- **Database & Table Identification**: Recognizes databases and their table structures from the provided code.
+- **Graph-based Representation**: Stores extracted relationships in Neo4j to enable knowledge graph exploration.
+- **Artifact Linking**: Ensures that extracted knowledge is linked to its originating artifact.
 
-In order to run this project, you need to create an API key in OpenAI:
+## Installation & Setup
 
-- Run `cp .env.sample .env`
-- [Create an account](https://platform.openai.com/signup)
-  or [log in with you existing one](https://platform.openai.com/login)
-- [Where do I find my API key?](https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key)
-- Create a new API key
-- Copy the key and paste it in the `.env` file
+This project is designed to run using Docker, Devcontainers, and uv as the package manager.
 
-### Setup
+🐳 Setup using Docker & Devcontainers
 
-This project is meant to be run with [Docker](https://www.docker.com/products/docker-desktop/)
-and [Devcontainers](https://containers.dev/).
-The settings are located inside `.devcontainer/devcontainer.json`.
+The recommended way to set up this project is by using a Devcontainer inside your IDE.
 
-To set up a devcontainer with your IDE, follow these instructions:
+### 1. Ensure you have Docker installed
+	•	Install Docker Desktop if you haven’t already.
+	•	Make sure Docker is running before proceeding.
 
-- For [VSCode](https://code.visualstudio.com/docs/devcontainers/tutorial)
-- For [IntelliJ](https://www.jetbrains.com/help/idea/connect-to-devcontainer.html)
+### 2. Open the project inside a Devcontainer
+	•	If using VSCode, install the Dev Containers extension.
+	•	If using IntelliJ, install the Docker Plugin and set up a remote Devcontainer.
+	•	Open the project in your IDE and reopen in a Devcontainer when prompted.
 
-Once the devcontainer is created, run a terminal inside it and execute:
+### 3. Install dependencies using uv
+Once inside the Devcontainer, open a terminal and run:
+```sh
+uv sync
+```
 
-- `uv sync`
+### 4. Set up environment variables:
+```sh
+cp .env.example .env
+```
+Edit the `.env` file with your Neo4j credentials.
 
-### Setup without Devcontainer
+## Usage
+To extract knowledge from an artifact:
+```sh
+uv run python main.py path/to/artifact.txt
+```
 
-Follow these steps:
+To perform a dry run (no database insertion):
+```sh
+uv run python main.py path/to/artifact.txt --dry-run
+```
 
-- Install [Python v3.12](https://www.python.org/downloads/)
-- Install [uv](https://github.com/astral-sh/uv)
-- Run `uv sync`
+## Graph Schema
+The system creates the following node types:
+- **APINode**: Represents an API service.
+- **EndpointNode**: Represents an endpoint within an API.
+- **QueryNode**: Represents a database query.
+- **DatabaseNode**: Represents a database instance.
+- **TableNode**: Represents a table in a database.
+- **KPINode**: Represents a key performance indicator (KPI).
+- **StatisticNode**: Represents a statistical method used for analysis.
+- **ArtifactNode**: Represents the original source artifact.
 
-### Running the project
+### Relationships:
+- `EXPOSES`: API → Endpoint
+- `QUERIES`: Endpoint → Database
+- `READS_FROM`: Query → Database
+- `STORES`: Database → Table
+- `USES`: Table → Query
+- `GENERATED`: Artifact → Extracted Nodes
 
-Run `uv run extract.py`
+## Author
+**Nicolas Espinoza Silva**
+
+For questions or contributions, feel free to reach out.
+
+## License
+This project is licensed under the MIT License.

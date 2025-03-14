@@ -1,91 +1,167 @@
-import os
-
-from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.chat import ParsedChatCompletion
 from pydantic import BaseModel
-
-from process_invoice_pdf import get_invoices
+from typing import List, Optional
+from nodes import APINode, EndpointNode, DatabaseNode, QueryNode, TableNode, KPINode, StatisticNode
+from relations import KnowledgeRelationshipsCollection, KnowledgeRelationship
+from dotenv import load_dotenv
 
 load_dotenv()
 
 openai_api_client = OpenAI()
 
-INVOICES_PROMPT = '''
-You are a financial assistant that specialises in reading invoices from a food delivery app.
-You will be provided with an invoice and your task is to extract the following information from the invoice: 
+class ExtractedEntities(BaseModel):
+    apis: List[APINode]
+    endpoints: List[EndpointNode]
+    databases: List[DatabaseNode]
+    queries: List[QueryNode]
+    tables: List[TableNode]
+    relationships: KnowledgeRelationshipsCollection
 
-- Order number
-- Order date 
-- Restaurant name
-- Order total
+EXTRACTION_PROMPT = """You are an advanced code analyzer specialized in extracting APIs, endpoints, database interactions, tables, and queries from source code.
+The provided code will contain UI components, charts, and data processing logic.
 
-Answer in JSON list in the specified format.
----------
-Here is one example showcasing the invoice and the result.
+Your task is to extract the following elements **explicitly** found in the provided code:
+- **APIs**: Identify external or internal APIs used in `fetch()`, `axios`, or other HTTP request libraries.
+- **Endpoints**: Extract the specific **URL**, **HTTP method**, and **parameters**.
+- **Queries**: Identify SQL/NoSQL queries, ORM interactions, or API-based query mechanisms.
+- **Databases**: Detect database usage, including SQL, NoSQL, Firebase, IndexedDB, or other storage solutions.
+- **Tables**: **Identify specific tables being referenced in queries or API requests, including column names and data types. If you find queries, then you should also identify the tables they interact with. This 
+tables are right after the FROM clause in the SQL queries.** FIND THEM.
 
-Example invoice
-Order receipt
-How would you rate the overall quality of your food experience?
-Rate your order
-Customer: Order:
-Sold to: Nemanja Order number: y81k-hyk
-Order date: 2024-01-12 10:18:29
-Partner:
-Name: Awesome Japan
-Address: 23 Serangoon Central , #01-
-63/64/65 NEX, 556083, Singapore
-Item Qty Unit price Price
-Japanese Rice 1 S$ 2.50 S$ 2.50
-Chicken Teriyaki Don Bundle 1 S$ 13.00 S$ 13.00
-- Coke 1 S$ 0.00 S$ 0.00
-Spicy Miso Chicken Teppan 1 S$ 12.90 S$ 12.90
-Subtotal S$ 28.40
-Foodpanda delivery fee S$ 1.99
-Platform fee S$ 0.40
-Voucher -
-Discount -
-Order Total S$ 21.23
-GST on foodpanda services S$ 0.19
-Payment method:
-Credit Card: S$ 21.23
-Privacy | Terms and conditions
-63 Robinson Road | Afroasia i-Mark Building #11-01 | Singapore 068894
-© Delivery Hero (Singapore) Pte Ltd
-GST No: 201209757Z
+⚠ **Only return elements that are explicitly present in the provided code. Do not infer or assume APIs, queries, or databases that are not explicitly stated.**
 
-Expected example response in JSON:
-{example_invoice}
---------
+---
 
-Extract the information from the following invoice.
-'''
+### **Example Code Artifact (React + Recharts + API Calls + Database Queries)**
+```javascript
+import React, {{ useState, useEffect }} from 'react';
+import {{ Table, Thead, Tbody, Tr, Th, Td }} from '@/components/ui/table';
 
-class Invoice(BaseModel):
-    order_number: str
-    order_date: str
-    restaurant_name: str
-    order_total: float
+// API Configuration
+const API_BASE_URL = "https://api.ordersystem.com";
 
+const OrderTable = () => {{
+    const [orders, setOrders] = useState([]);
 
-dummy_invoice = Invoice(order_number="y81k-hyk",
-                        order_date="2024-01-12 10:18:29",
-                        restaurant_name="Awesome Japan",
-                        order_total=21.23)
+    useEffect(() => {{
+        fetch(`${{API_BASE_URL}}/orders`)
+            .then(response => response.json())
+            .then(data => setOrders(data))
+            .catch(error => console.error("Error fetching order data:", error));
+    }}, []);
 
-invoices = get_invoices()
+    return (
+        <Table>
+            <Thead>
+                <Tr>
+                    <Th>Order ID</Th>
+                    <Th>Customer Name</Th>
+                    <Th>Total</Th>
+                </Tr>
+            </Thead>
+            <Tbody>
+                {{orders.map((order, index) => (
+                    <Tr key={{index}}>
+                        <Td>{{order.id}}</Td>
+                        <Td>{{order.customer_name}}</Td>
+                        <Td>${{order.total}}</Td>
+                    </Tr>
+                ))}}
+            </Tbody>
+        </Table>
+    );
+}};
 
-for invoice in invoices:
-    extracted_invoice: ParsedChatCompletion[Invoice]  = openai_api_client.beta.chat.completions.parse(
-        model=os.environ.get('CHAT_COMPLETION_MODEL'),
-        response_format=Invoice,
-        messages=[
-            {"role": "system", "content": INVOICES_PROMPT.format(example_invoice=dummy_invoice.model_dump_json())},
-            {
-                "role": "user",
-                "content": invoice
-            }
-        ]
+export default OrderTable;
+```
+
+---
+
+### **Expected Extracted JSON Output**
+```json
+{{
+    "apis": [
+        {{
+            "id": "api_1",
+            "name": "Order System API",
+            "description": "API for managing customer orders",
+            "base_url": "https://api.ordersystem.com"
+        }}
+    ],
+    "endpoints": [
+        {{
+            "id": "endpoint_1",
+            "api_id": "api_1",
+            "path": "/orders",
+            "method": "GET",
+            "parameters": []
+        }}
+    ],
+    "databases": [
+        {{
+            "id": "db_1",
+            "name": "OrdersDB",
+            "type": "SQL",
+            "description": "Primary database for order management",
+            "query_pattern": "SELECT * FROM orders WHERE id = ?"
+        }}
+    ],
+    "queries": [
+        {{
+            "id": "query_1",
+            "pregunta_original": "Retrieve all customer orders",
+            "pregunta_generica": "Fetch order records",
+            "sql_query": "SELECT * FROM orders",
+            "cypher_query": ""
+        }},
+        {{
+            "id": "query_2",
+            "pregunta_original": "Get total sales by region",
+            "pregunta_generica": "Fetch regional sales summary",
+            "sql_query": "SELECT region, SUM(total_sales) FROM orders GROUP BY region",
+            "cypher_query": ""
+        }}
+    ],
+    "tables": [
+        {{
+            "id": "table_1",
+            "nombre_tabla": "orders",
+            "columnas": ["id", "customer_name", "total", "region", "total_sales"],
+            "tipos_datos": ["INTEGER", "VARCHAR", "FLOAT", "VARCHAR", "FLOAT"]
+        }}
+    ]
+}}
+```
+
+---
+
+### **Extract the information from the following artifact:**
+{codigo}
+"""
+
+def extract_metadata(code: str) -> ExtractedEntities:
+    response: ParsedChatCompletion[ExtractedEntities] = openai_api_client.beta.chat.completions.parse(
+        model="gpt-4o",
+        response_format=ExtractedEntities,
+        messages=[{"role": "system", "content": EXTRACTION_PROMPT.format(codigo=code)}]
     )
 
-    print(extracted_invoice.choices[0].message.parsed.model_dump_json())
+    return response.choices[0].message.parsed
+
+def extract_metadata_with_retries(artifact_code, max_retries=2):
+    """
+    Intenta extraer metadatos hasta `max_retries` veces si la primera ejecución falla.
+    """
+    for attempt in range(max_retries):
+        print(f"[Neo4j] Extrayendo información del código... (Intento {attempt + 1})")
+        extracted_entities = extract_metadata(artifact_code)
+
+        if extracted_entities.apis or extracted_entities.endpoints or extracted_entities.databases \
+           or extracted_entities.queries or extracted_entities.tables or extracted_entities.relationships.relaciones:
+            return extracted_entities
+
+        print("[Warning] No se encontraron entidades en este intento.")
+
+    print("[Error] No se encontraron entidades después de varios intentos.")
+    return extracted_entities

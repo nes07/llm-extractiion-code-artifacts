@@ -1,0 +1,127 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ClipboardCheck, BarChart3, Table2, Download } from 'lucide-react';
+
+const fetchData = async (url, method = 'GET', body = null) => {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body) options.body = JSON.stringify(body);
+
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch from ${url}`);
+  }
+  return response.json();
+};
+
+const handleSubmit = async (formData) => {
+  try {
+    const data = await fetchData('https://programacion-faena-cerdos-erickshuffer.replit.app/plan_faena', 'POST', formData);
+    console.log('Plan de faena enviado:', data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const fetchUserData = async (userId) => {
+  return fetchData(`https://api.example.com/users/${userId}`);
+};
+
+const fetchProductInfo = async (productId) => {
+  return fetchData(`https://api.example.com/products/${productId}`);
+};
+
+const fetchDatabaseStats = async () => {
+  return fetchData('https://api.example.com/db/stats');
+};
+
+const fetchTableData = async (tableName) => {
+  return fetchData(`https://api.example.com/db/tables/${tableName}`);
+};
+
+const processQuery = async (query) => {
+  return fetchData('https://api.example.com/db/query', 'POST', { query });
+};
+
+const queryUserAge = async () => {
+  return processQuery('SELECT name, age FROM users WHERE age > 30');
+};
+
+const querySalesData = async () => {
+  return processQuery('SELECT product, SUM(quantity) FROM sales GROUP BY product');
+};
+
+const queryEmployeeRecords = async () => {
+  return processQuery('SELECT * FROM employees WHERE department = "logistics"');
+};
+
+const StepIndicator = ({ currentStep, setCurrentStep }) => (
+  <div className="flex justify-center mb-4">
+    <div className="flex items-center flex-wrap justify-center gap-2 md:gap-3">
+      <Button
+        onClick={() => setCurrentStep(1)}
+        className={`flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border-2 shadow-md transition-all duration-200
+          ${currentStep === 1 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 hover:border-blue-400'}`}
+        aria-label="Paso 1: Planificación"
+      >
+        <ClipboardCheck size={24} />
+      </Button>
+      <div className={`w-8 md:w-12 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`} />
+      <Button
+        onClick={() => setCurrentStep(2)}
+        className={`flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border-2 shadow-md transition-all duration-200
+          ${currentStep === 2 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 hover:border-blue-400'}`}
+        aria-label="Paso 2: Análisis"
+      >
+        <BarChart3 size={24} />
+      </Button>
+      <div className={`w-8 md:w-12 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`} />
+      <Button
+        onClick={() => setCurrentStep(3)}
+        className={`flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border-2 shadow-md transition-all duration-200
+          ${currentStep === 3 ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 hover:border-blue-400'}`}
+        aria-label="Paso 3: Datos"
+      >
+        <Table2 size={24} />
+      </Button>
+    </div>
+  </div>
+);
+
+const FaenaPlannerDashboard = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [responseData, setResponseData] = useState(null);
+  
+  const handleSubmitClick = async () => {
+    setLoading(true);
+    try {
+      const response = await handleSubmit({});
+      setResponseData(response);
+      setCurrentStep(2);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-2 md:p-4">
+      <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">Sistema de Planificación de Faena</h1>
+      <StepIndicator currentStep={currentStep} setCurrentStep={setCurrentStep} />
+      <Button onClick={handleSubmitClick} className="bg-blue-600 hover:bg-blue-700 text-white">
+        {loading ? 'Procesando...' : 'Enviar Plan'}
+      </Button>
+      {error && <p className="text-red-500">Error: {error}</p>}
+      {responseData && <pre>{JSON.stringify(responseData, null, 2)}</pre>}
+    </div>
+  );
+};
+
+export default FaenaPlannerDashboard;
