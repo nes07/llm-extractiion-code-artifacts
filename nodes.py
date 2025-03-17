@@ -56,9 +56,5 @@ class DatabaseNode(BaseModel):
     description: str
     query_pattern: Optional[str]
 
-class ArtifactNode(BaseModel):
-    id: str
-    code: str
-
 class KnowledgeNodesCollection(BaseModel):
     nodos: List[BaseModel]
