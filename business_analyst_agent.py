@@ -18,6 +18,7 @@ BUSINESS_ANALYST_PROMPT = """
 Eres un analista de negocios experto en arquitectura de software y gestión de datos.
 Tu tarea es analizar APIs, Endpoints, Bases de Datos, KPIs y Métodos Estadísticos
 y proporcionar información clave sobre su relevancia en el negocio.
+**SI HAY KPIs o ESTADISTICOS dentro del codigo a revisar, extraelos desde ahí**.
 
 Para cada entidad:
 - **Descripción**: Explica su función en el sistema.
@@ -37,10 +38,12 @@ def analyze_business_context(extracted_entities) -> BusinessAnalysisResponse:
     Uses an AI-powered Business Analyst to generate business insights for APIs, Endpoints, Databases, KPIs, and Statistics.
     """
 
+    ### Quitar este bloque para obtener insights del analista de negocios
     dummy_business_response = BusinessAnalysisResponse(
         insights=[]
     )
     return dummy_business_response
+    ### Fin del bloque
 
     prompt = BUSINESS_ANALYST_PROMPT
 

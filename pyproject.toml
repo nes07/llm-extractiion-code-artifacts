@@ -1,9 +1,9 @@
 [project]
-name = "llm-extract-structured-information"
+name = "llm-extract-artifact-information"
 version = "0.1.0"
 description = ""
 authors = [
-    { name = "Nemanja Ninkovic" }
+    { name = "Nicolás Espinoza Silva" }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,7 +13,35 @@ dependencies = [
     "pdfplumber",
     "pydantic",
     "python-dotenv",
-    "neo4j"
+    "neo4j",
+    "annotated-types",
+    "anyio",
+    "certifi",
+    "cffi",
+    "charset-normalizer",
+    "cryptography",
+    "distro",
+    "h11",
+    "httpcore",
+    "httpx",
+    "idna",
+    "jiter",
+    "neo4j",
+    "openai",
+    "pdfminer-six",
+    "pdfplumber",
+    "pillow",
+    "pycparser",
+    "pydantic",
+    "pydantic-core",
+    "pypdfium2",
+    "python-dotenv",
+    "pytz",
+    "sniffio",
+    "tqdm",
+    "typing-extensions",
+    "fastapi",
+    "uvicorn"
 ]
 
 # see https://github.com/astral-sh/uv/issues/6443

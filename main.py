@@ -1,5 +1,4 @@
 import uuid
-import argparse
 from extract import extract_metadata_with_retries
 from business_analyst_agent import analyze_business_context
 from nodes_generator import generate_knowledge_nodes
@@ -8,31 +7,14 @@ from insertion import insert_into_neo4j, get_existing_nodes, link_artifact_to_no
 from process import GraphUpdate
 from nodes import ArtifactNode
 
-def read_file(file_path: str) -> str:
+def process_artifact(artifact_code: str):
     """
-    Lee el contenido del archivo con el código del artifact.
+    Processes an artifact provided as a string instead of reading from a file.
     """
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            return file.read().strip()
-    except FileNotFoundError:
-        print(f"Error: No se encontró el archivo '{file_path}'")
-        exit(1)
-
-def main():
-    parser = argparse.ArgumentParser(description="Procesa un archivo con código de artifacts y almacena los datos en Neo4j.")
-    parser.add_argument("file_path", type=str, help="Ruta al archivo con el código del artifact.")
-    parser.add_argument("--dry-run", action="store_true", help="Simula el procesamiento sin insertar en Neo4j.")
-    
-    args = parser.parse_args()
-    file_path = args.file_path
-
-    print("[Paso 1] Leyendo el archivo...")
-    artifact_code = read_file(file_path)
+    print("[Paso 1] Recibiendo el código del artifact...")
 
     if not artifact_code:
-        print("El archivo está vacío. Finalizando.")
-        exit(0)
+        raise ValueError("El código del artifact está vacío.")
 
     print("[Paso 2] Extrayendo información del código...")
     extracted_entities = extract_metadata_with_retries(artifact_code)
@@ -59,14 +41,6 @@ def main():
         existing_nodes
     )
 
-    if args.dry_run:
-        print("\nModo Dry-Run Activado: No se insertará en Neo4j.")
-        print("Nodos Generados:", knowledge_nodes)
-        print("Relaciones Generadas:", knowledge_relationships)
-        print("Cantidad de Nodos:", len(knowledge_nodes.nodos))
-        print("Cantidad de Relaciones:", len(knowledge_relationships.relaciones))
-        exit(0)
-
     print("[Paso 7] Insertando nodos y relaciones en Neo4j...")
 
     artifact_id = str(uuid.uuid4())
@@ -80,5 +54,9 @@ def main():
 
     link_artifact_to_nodes(artifact_node, knowledge_nodes.nodos)
 
-if __name__ == "__main__":
-    main()
+    return {
+        "artifact_id": artifact_id,
+        "message": "Artifact processed successfully",
+        "nodes_inserted": len(knowledge_nodes.nodos),
+        "relationships_inserted": len(knowledge_relationships.relaciones)
+    }
