@@ -40,15 +40,37 @@ cp .env.example .env
 Edit the `.env` file with your Neo4j credentials.
 
 ## Usage
-To extract knowledge from an artifact:
+To extract knowledge from an artifact we use the The Artifact Processing system that we created and is now exposed as an API.
+
+
+### 1. Start the API server
+Run the following command to start the API:
 ```sh
-uv run python main.py path/to/artifact.txt
+uv run uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+```
+You should see an output similar to:
+```sh
+INFO:     127.0.0.1:60646 - "POST /process_artifact/ HTTP/1.1" 200 OK
+```
+### 2. Send a JSON Artifact for Processing
+You can send an artifact JSON file to the API for processing. Example request:
+```sh
+curl -X POST "http://127.0.0.1:8000/process_artifact" \
+     -H "Content-Type: application/json" \
+     -d @artifacts/artifact.json
 ```
 
-To perform a dry run (no database insertion):
+### 3. Verify the API is running
+If you want to check if the API is running before making a request:
 ```sh
-uv run python main.py path/to/artifact.txt --dry-run
+curl http://127.0.0.1:8000
 ```
+
+Expected response:
+```sh
+{"message":"Artifact Processing API is running!"}
+```
+
 
 ## Graph Schema
 The system creates the following node types:
