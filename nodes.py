@@ -5,6 +5,9 @@ class ArtifactNode(BaseModel):
     id: str
     code: str
 
+class UserNode(BaseModel):
+    id: str
+
 class QueryNode(BaseModel):
     id: str
     pregunta_original: str

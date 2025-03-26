@@ -3,11 +3,11 @@ from extract import extract_metadata_with_retries
 from business_analyst_agent import analyze_business_context
 from nodes_generator import generate_knowledge_nodes
 from relationship_agent import determine_relationships
-from insertion import insert_into_neo4j, get_existing_nodes, link_artifact_to_nodes
+from insertion import insert_into_neo4j, get_existing_nodes, link_artifact_to_nodes, link_user_to_artifact
 from process import GraphUpdate
-from nodes import ArtifactNode
+from nodes import ArtifactNode, UserNode
 
-def process_artifact(artifact_code: str):
+def process_artifact(artifact_code: str, artifact_user: str):
     """
     Processes an artifact provided as a string instead of reading from a file.
     """
@@ -46,6 +46,9 @@ def process_artifact(artifact_code: str):
     artifact_id = str(uuid.uuid4())
     artifact_node = ArtifactNode(id=artifact_id, code=artifact_code)
 
+    user_id = artifact_user
+    user_node = UserNode(id=user_id)
+
     graph_update = GraphUpdate(
         nodos=[node.model_dump() for node in knowledge_nodes.nodos],
         relaciones=[rel.model_dump() for rel in knowledge_relationships.relaciones]
@@ -53,6 +56,7 @@ def process_artifact(artifact_code: str):
     insert_into_neo4j(graph_update)
 
     link_artifact_to_nodes(artifact_node, knowledge_nodes.nodos)
+    link_user_to_artifact(artifact_node, user_node)
 
     return {
         "artifact_id": artifact_id,
