@@ -2,7 +2,7 @@ from neo4j import GraphDatabase
 from process import GraphUpdate
 import os
 from dotenv import load_dotenv
-from nodes import ArtifactNode
+from nodes import ArtifactNode, UserNode
 
 load_dotenv()
 
@@ -67,6 +67,17 @@ def create_artifact_node(artifact_node):
     artifact_params = {"id": artifact_node.id, "code": artifact_node.code}
     neo4j_conn.execute_query(artifact_query, artifact_params)
 
+def create_user_node(user_node):
+    """
+    Crea un nodo User en Neo4j.
+    """
+    user_query = """
+    MERGE (u:User {id: $id})
+    RETURN u
+    """
+    user_params = {"id": user_node.id}
+    neo4j_conn.execute_query(user_query, user_params)
+
 ALLOW_RELATIONSHIPS_BETWEEN_ARTIFACTNODE = {"APINode", "EndpointNode", "DatabaseNode", "QueryNode", "TableNode", "VisualizationNode"}
 
 def link_artifact_to_nodes(artifact_node: ArtifactNode, knowledge_nodes):
@@ -89,6 +100,23 @@ def link_artifact_to_nodes(artifact_node: ArtifactNode, knowledge_nodes):
             neo4j_conn.execute_query(relation_query, relation_params)
 
     print("[Neo4j] Relaciones del Artifact insertadas correctamente.")
+
+def link_user_to_artifact(artifact_node: ArtifactNode, user_node: UserNode):
+    """
+    Links a User to an Artifact.
+    """
+    print("[Neo4j] Creando relación Usuario-Artifact...")
+
+    create_user_node(user_node)
+
+    relation_query = """
+    MATCH (u:User {id: $user_id}), (a:Artifact {id: $artifact_id})
+    MERGE (a)-[:CREATED_BY]->(u)
+    """
+    relation_params = {"user_id": user_node.id, "artifact_id": artifact_node.id}
+    neo4j_conn.execute_query(relation_query, relation_params)
+
+    print("[Neo4j] Relación Usuario-Artifact insertada correctamente.")
 
 def insert_into_neo4j(graph_update: GraphUpdate):
     """

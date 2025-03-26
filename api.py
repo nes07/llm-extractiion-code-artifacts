@@ -6,11 +6,12 @@ app = FastAPI()
 
 class ArtifactInput(BaseModel):
     code: str
+    user: str
 
 @app.post("/process_artifact/")
 async def process_artifact_endpoint(data: ArtifactInput):
     try:
-        response = process_artifact(data.code)
+        response = process_artifact(data.code, data.user)
         return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
