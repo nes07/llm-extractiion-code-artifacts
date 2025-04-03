@@ -118,14 +118,27 @@ def link_user_to_artifact(artifact_node: ArtifactNode, user_node: UserNode):
 
     print("[Neo4j] Relación Usuario-Artifact insertada correctamente.")
 
+def get_private_embeddings(node) -> dict:
+    return {
+        key.lstrip("_"): value
+        for key, value in getattr(node, "__pydantic_private__").items()
+        if key.endswith("_embedding")
+    }
+
+def serialize_node_with_private_attrs(node):
+    data = node.model_dump()
+    embeddings = get_private_embeddings(node)
+    return {**data, **embeddings}
+
 def insert_into_neo4j(graph_update: GraphUpdate):
     """
     Inserts nodes and relationships into Neo4j without checking for duplicates.
+    Includes private _embedding attributes in insertion.
     """
     print("[Neo4j] Inserting nodes...")
 
     for nodo in graph_update.nodos:
-        nodo_dict = nodo if isinstance(nodo, dict) else nodo.model_dump()
+        nodo_dict = serialize_node_with_private_attrs(nodo)
         node_class_name = nodo.__class__.__name__
         node_label = NODE_TYPE_MAPPING.get(node_class_name, "Unknown")
 
@@ -160,4 +173,3 @@ def insert_into_neo4j(graph_update: GraphUpdate):
         neo4j_conn.execute_query(query, parameters)
 
     print("[Neo4j] Data inserted successfully.")
-

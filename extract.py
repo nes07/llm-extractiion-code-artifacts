@@ -21,6 +21,8 @@ class ExtractedEntities(BaseModel):
 EXTRACTION_PROMPT = """You are an advanced code analyzer specialized in extracting APIs, endpoints, database interactions, tables, and queries from source code.
 The provided code will contain UI components, charts, and data processing logic.
 
+As a note: you **WILL ONLY EXTRACT THE ELEMENTS LISTED ON THE CLASS**. Nothing else.
+
 Your task is to extract the following elements **explicitly** found in the provided code:
 - **APIs**: Identify external or internal APIs used in `fetch()`, `axios`, or other HTTP request libraries.
 - **Endpoints**: Extract the specific **URL**, **HTTP method**, and **parameters**.

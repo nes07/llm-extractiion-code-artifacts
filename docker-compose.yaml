@@ -1,0 +1,15 @@
+
+services:
+  memgraph:
+    image: memgraph/memgraph-platform
+    container_name: memgraph
+    ports:
+      - "7787:7687"
+      - "3000:3000"
+      - "7744:7744"
+    volumes:
+      - memgraph_data:/var/lib/memgraph
+    restart: unless-stopped
+
+volumes:
+  memgraph_data:

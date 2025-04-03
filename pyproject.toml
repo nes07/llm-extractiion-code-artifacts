@@ -41,9 +41,15 @@ dependencies = [
     "tqdm",
     "typing-extensions",
     "fastapi",
-    "uvicorn"
+    "uvicorn",
+    "supabase>=2.15.0",
 ]
 
 # see https://github.com/astral-sh/uv/issues/6443
 [tool.setuptools.packages.find]
 where = []
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
