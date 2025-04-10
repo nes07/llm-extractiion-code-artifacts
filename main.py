@@ -37,7 +37,7 @@ def process_artifact(artifact_code: str, artifact_user: str):
 
     print("[Paso 6] Evaluando relaciones entre todos los nodos...")
     knowledge_relationships = determine_relationships(
-        knowledge_nodes.nodos,
+        knowledge_nodes,
         existing_nodes
     )
 
@@ -50,7 +50,7 @@ def process_artifact(artifact_code: str, artifact_user: str):
     user_node = UserNode(id=user_id)
 
     graph_update = GraphUpdate(
-        nodos=[node.model_dump() for node in knowledge_nodes.nodos],
+        nodos=[node for node in knowledge_nodes.nodos],
         relaciones=[rel.model_dump() for rel in knowledge_relationships.relaciones]
     )
     insert_into_neo4j(graph_update)
