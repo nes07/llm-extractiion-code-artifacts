@@ -96,5 +96,13 @@ class DatabaseNode(BaseModel):
     _description_embedding: Optional[List[float]] = PrivateAttr(default=None)
     _query_pattern_embedding: Optional[List[float]] = PrivateAttr(default=None)
 
+class DesignMemoryNode(BaseModel):
+    id: str
+    resumen_conversacion: str             
+    system_prompt: str                    
+
+    _resumen_embedding: Optional[List[float]] = PrivateAttr(default=None)
+    _system_prompt_embedding: Optional[List[float]] = PrivateAttr(default=None)
+
 class KnowledgeNodesCollection(BaseModel):
     nodos: List[BaseModel]

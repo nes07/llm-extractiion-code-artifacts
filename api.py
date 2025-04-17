@@ -13,6 +13,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class DesignMemoryInput(BaseModel):
+    code: str
+    user: str
+    resumen_conversacion: str
+    system_prompt: str
+
 class ArtifactInput(BaseModel):
     code: str
     user: str
